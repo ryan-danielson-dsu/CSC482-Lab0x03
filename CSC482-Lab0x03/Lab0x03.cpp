@@ -6,112 +6,124 @@
 
 
 enum Algs {
-    N3,
-    N6,
-    LOGN,
-    NLOGN,
-    LOGN_SQUARED,
-    N2LOGN,
-    EXP,
-    FACTORIAL
+    A,
+    B,
+    C,
+    D
 };
 
-int test = EXP;
+const int test = B;
 long long unsigned int busyCount;
 
 
 
 void doBusyWork(void)
 {
-    for (int k = 0; k < 100; k += 1);
+    for (int k = 0; k < 1; k += 1);
     busyCount += 1;
 }
 
-void busyAlgorithm_N3(long long unsigned int N)
+void generateArrayA(long long N, int list[])
 {
-    for (long long unsigned k = 0; k < N; k++)
-        for (long long unsigned l = 0; l < k; l++)
-            for (long long unsigned m = 0; m < k; m++)
-                doBusyWork();
-}
-
-void busyAlgorithm_NlogN(long long unsigned int N)
-{
-    if (N > 1)
-        busyAlgorithm_NlogN(N / 2);
-
-    for (long long unsigned k = 0; k < N; k++)
-        doBusyWork();
-
-}
-
-void busyAlgorithm_logN(long long unsigned int N)
-{
-    if (N > 1)
-        busyAlgorithm_logN(N / 2);
-    doBusyWork();
-}
-
-void busyAlgorithm_N2logN(long long unsigned int N)
-{
-    if (N > 1)
-        busyAlgorithm_N2logN(N / 2);
-
-    for (long long unsigned k = 0; k < N; k++)
-        for (long long unsigned l = 0; l < k; l++)
-            doBusyWork();
-}
-
-void busyAlgorithm_N6(long long unsigned int N)
-{
-    /* would be a beautiful pawn structure */
-    for (long long unsigned int i = 0; i < N; i++)
-        for (long long unsigned int j = 0; j < i; j++)
-            for (long long unsigned int k = 0; k < i; k++)
-                for (long long unsigned int l = 0; l < i; l++)
-                    for (long long unsigned int m = 0; m < i; m++)
-                        for (long long unsigned int n = 0; n < i; n++)
-                            doBusyWork();
-
-}
-
-void busyAlgorithm_logN_squared(long long unsigned int N)
-{
-    if (N > 1)
-        busyAlgorithm_logN_squared(N / 2);
-    doBusyWork();
-    doBusyWork();
-}
-
-void busyAlgorithm_exp(long long unsigned int N)
-{
-    if (N > 1) {
-        busyAlgorithm_exp(N - 1);
-        doBusyWork();
-        busyAlgorithm_exp(N - 1);
+    srand(NULL);
+    for (long long i = 0; i < N; i++) {
+        list[i] = rand() % 100;
     }
 }
 
-void busyAlgorithm_factorial(long long unsigned int N)
+void generateArrayB(long long N, double list[])
 {
-
+    srand(NULL);
+    for (long long i = 0; i < N; i++) {
+        list[i] = (double)(rand() % 100);
+    }
 }
 
+void algorithm_A(int N, int list[])
+{
+    int a = 0;
+    int b = N;
+    while (a < b) {
+        if (list[a] < list[b]) {
+            a = a + 1;
+        }
+        else {
+            b = b - 1;
+        }
+        doBusyWork();
+    }
+}
+
+int algorithm_B(int N, int list[])
+{
+    for (int q = 1; q < N; q = 2 * q) {
+        for (int i = 0; i < N - q; i = i + 2 * q) {
+            doBusyWork();
+            if (list[i] < list[i + q]) {
+                int tmp = list[i];
+                list[i] = list[i + q];
+                list[i + q] = tmp;
+
+            }
+        }
+    }
+    return list[0];
+}
+
+void algorithm_C(double list[], int startIndex, int endIndex) 
+{
+    if (endIndex > startIndex) {
+        //phase 1   
+        for (int i = startIndex; i <= (startIndex + endIndex) / 2; i++) {
+            int x = list[i];
+            list[i] = 2.0 * list[endIndex + startIndex - i];
+            list[endIndex + startIndex - i] = x;
+        }
+
+        //phase 2: recursion 
 
 
-int main(int argc, int argv) {
+        algorithm_C(list, startIndex, startIndex + floor(.5 * (endIndex - startIndex)));
+        algorithm_C(list, startIndex + ceil(.25 * (endIndex - startIndex)), startIndex + floor(.75 * (endIndex - startIndex)));      
+        algorithm_C(list, startIndex + ceil(.5  * (endIndex - startIndex)), endIndex);
+
+        //phase 3 
+        for (int i = startIndex; i <= (startIndex + endIndex) / 2; i++) {
+            int x = list[i];
+            list[i] = list[endIndex + startIndex - i] / 2.0;
+            list[endIndex + startIndex - i] = x;
+        }
+
+        doBusyWork();
+    }
+}
+
+int algorithm_D(int N)
+{
+    if (N <= 1) return 1;
+    else {
+        //doBusyWork();
+        return (algorithm_D(N - 1) + algorithm_D(N - 2));
+    }
+}
+
+int main(int argc, char **argv) {
 
     double trialsTime_max = .250; // in seconds
     long long int trialsCount_max = 1000000,
         N_min = 1,
-        N_max = 100000000000, // adjust as needed, keep small for debugging
         trial;
     clock_t splitTimeStamp, trialSetStart;
+    const long long  N_max = 1000000000; // adjust as needed, keep small for debugging
+
     double splitTime, trialSetCount, trialSetTime, dummySetCount, dummySetTime, averageTrialTime, averageDummyTrialTime, estimatedTimePerTrial;
 
     double times[100] = { 0 };
     int index = 1;
-
+    int *listA = (int*)malloc(sizeof(int) * N_max);
+    double* listB = (double*)malloc(sizeof(double) * N_max);
+    generateArrayA(N_max, listA);
+    generateArrayB(N_max, listB);
 
     // If you are printing a results table directly, print your header line here.
     printf("+----------------------------------------------------------------------------------------------------------------------------------------------------------------+\n");
@@ -120,9 +132,8 @@ int main(int argc, int argv) {
     // power of 2 | N | Measured Time | Measured Doubling Ratio | Expected Doubling Ratio |Busy Count | Measured Time / Busy Count
     // For each size N of input we want to test -- typically start N at 1 and double each repetition
     //for (long long int n=1; n<N_max; n=2*n ) {
-    for (long long int n = 1; n < N_max; n++) {
+    for (long long int n = 1; n < N_max; n = 2*n) {
         /********* any preparations, test input generation, to be used for entire trial set ********/
-
         splitTime = 0.0;
         // get timestamp before set of trials are run:
         trialSetStart = clock();
@@ -133,29 +144,17 @@ int main(int argc, int argv) {
             /**** >>>> Call the algorithm function we are testing, using the generated test input <<<<< ******/
 
             switch (test) {
-            case N3:
-                busyAlgorithm_N3(n);
+            case A:
+                algorithm_A(n, listA);
                 break;
-            case N6:
-                busyAlgorithm_N6(n);
+            case B:
+                algorithm_B(n, listA);
                 break;
-            case LOGN:
-                busyAlgorithm_logN(n);
+            case C:
+                algorithm_C(listB, 0, n);
                 break;
-            case NLOGN:
-                busyAlgorithm_NlogN(n);
-                break;
-            case LOGN_SQUARED:
-                busyAlgorithm_logN_squared(n);
-                break;
-            case N2LOGN:
-                busyAlgorithm_N2logN(n);
-                break;
-            case EXP:
-                busyAlgorithm_exp(n);
-                break;
-            case FACTORIAL:
-                busyAlgorithm_factorial(n);
+            case D:
+                algorithm_D(n);
                 break;
             default:
                 break;
@@ -207,33 +206,17 @@ int main(int argc, int argv) {
             printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), 0, 0, 0, busyCount, 0);
         else {
             switch (test) {
-            case N3:
-                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], pow((double)n, 3) / pow((double)n / 2, 3), busyCount, estimatedTimePerTrial / busyCount);
+            case A:
+                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], (float)n/(float)(n/2), busyCount, estimatedTimePerTrial / busyCount);
                 break;
-            case N6:
-                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], pow((double)n, 6) / pow((double)n / 2, 6), busyCount, estimatedTimePerTrial / busyCount);
+            case B:
+                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], log(n)/log(n/2), busyCount, estimatedTimePerTrial / busyCount);
                 break;
-            case LOGN:
-                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], log((double)n) / log((double)n / 2), busyCount, estimatedTimePerTrial / busyCount);
+            case C:
+                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], (float)(3*(n/2)+n) / (float)((3*(n/4)+n)/2), busyCount, estimatedTimePerTrial / busyCount);
                 break;
-            case NLOGN:
-                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], (n * log((double)n)) / ((n / 2) * log((double)n / 2)), busyCount, estimatedTimePerTrial / busyCount);
-                break;
-            case LOGN_SQUARED:
-                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], log((double)n) / log((double)n / 2), busyCount, estimatedTimePerTrial / busyCount);
-                break;
-            case N2LOGN:
-                printf("| %20llu | %20.0f | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, log2((double)n), estimatedTimePerTrial, times[index] / times[index - 1], pow((double)n, 2) / pow((double)n / 2, 2), busyCount, estimatedTimePerTrial / busyCount);
-                break;
-            case EXP:
-                if (n % 2 == 0) {
-                    printf("| %20llu | %20s | %20.10f | %20.10f | %20.2f | %20llu | %20.10f |\n", n, "N/A", estimatedTimePerTrial, times[n] / times[n / 2], pow(2, (double)n) / pow(2, ((double)n / 2)), busyCount, estimatedTimePerTrial / busyCount);
-                }
-                else {
-                    printf("| %20llu | %20s | %20.10f | %20s | %20s | %20llu | %20.10f |\n", n, "N/A", estimatedTimePerTrial, "N/A", "N/A", busyCount, estimatedTimePerTrial / busyCount);
-                }
-                break;
-            case FACTORIAL:
+            case D:
+                printf("| %20llu | %20.0d | %20.10f | %20.10f | %20.2f | %20s | %20s |\n", 0, n, estimatedTimePerTrial, times[index] / times[index - 1], pow(2, (double)n)/pow(2, (double)n-1), "N/A",  "N/A");
                 break;
             default:
                 break;
@@ -252,6 +235,9 @@ int main(int argc, int argv) {
         // can also save data to array(s) for later printing/processing
 
     }
+
+    free(listA);
+    free(listB);
 }
 
 //////////////////////////////////
